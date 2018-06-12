@@ -1,0 +1,31 @@
+{
+  "name": "acid_prueba",
+  "version": "1.0.0",
+  "description": "acid prueba",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon sever.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dlopez31/acid_prueba.git"
+  },
+  "keywords": [
+    "acid",
+    "test",
+    "js"
+  ],
+  "author": "Denys Lopez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dlopez31/acid_prueba/issues"
+  },
+  "homepage": "https://github.com/dlopez31/acid_prueba#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "nodemon": "^1.17.5",
+    "request": "^2.87.0"
+  }
+}
