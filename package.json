@@ -2,10 +2,10 @@
   "name": "acid_prueba",
   "version": "1.0.0",
   "description": "acid prueba",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon sever.js"
+    "start": "nodemon --legacy-watch server.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
     "body-parser": "^1.18.3",
     "express": "^4.16.3",
     "nodemon": "^1.17.5",
+    "redis": "^2.8.0",
     "request": "^2.87.0"
   }
 }

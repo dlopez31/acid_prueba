@@ -1,0 +1,23 @@
+#our docker-compose version
+version: "3.3"
+
+services:
+  node_server:
+    build: .
+    container_name: crypto-server
+    depends_on:
+      - redis_server
+    volumes:
+      - ./:/app
+      - /app/node_modules/
+    ports:
+      - "${PORT}:${PORT}"
+    links:
+      - redis_server
+    environment:
+      PORT: ${PORT}
+  redis_server:
+    image: redis
+    container_name: redis_service
+    volumes:
+      - ./redis/:/data
