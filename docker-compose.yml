@@ -1,0 +1,34 @@
+#our docker-compose version
+version: "3.3"
+
+services:
+  front:
+    build: ./front
+    container_name: front-react
+    volumes:
+      - ./:/app/front
+      - /app/node_modules/
+    ports:
+      - "${REACT_PORT}:${REACT_PORT}"
+    environment:
+      PORT: ${REACT_PORT}
+  node_server:
+    build: .
+    container_name: crypto-server
+    depends_on:
+      - redis_server
+    volumes:
+      - ./:/app
+      - /app/node_modules/
+      - /app/front/
+    ports:
+      - "${PORT}:${PORT}"
+    links:
+      - redis_server
+    environment:
+      PORT: ${PORT}
+  redis_server:
+    image: redis
+    container_name: redis_service
+    volumes:
+      - ./redis/:/data
