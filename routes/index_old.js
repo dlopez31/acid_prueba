@@ -34,6 +34,7 @@ const simulateErrorNetwork = (cb) => {
   const randomNumber = Math.round(Math.random() * 100);
   console.log("random", randomNumber)
   if (randomNumber <= 10) {
+    count++;
     console.log('retry request', new Error('How Unfortunate the API Request Failed!!!'));
     return simulateErrorNetwork(cb);
   }
@@ -84,11 +85,14 @@ router.get("/daily", checkParams, getCurrenyOnRedis, function(req, res, next) {
 
   getCurrency(url, function(err, resp, body) {
     if (err) {
-
       return res.status(400).json(body);
     }
 
+    if (typeof body['Error Message'] !== 'undefined') {
+      console.log("entro en error");
+      return res.status(400).json(body);
 
+    } else {
       const result = [];
       result.push(JSON.parse(body));
       const enviBody = {
@@ -96,16 +100,6 @@ router.get("/daily", checkParams, getCurrenyOnRedis, function(req, res, next) {
         message: 'Daily info',
         results: result
       }
-      if( enviBody.results[0].hasOwnProperty("Error Message"))
-      {
-        console.log("entro en error");
-        res.send({
-          success: false,
-          message: 'Error de conexion a la pagina',
-        });
-        return res.status(400);
-      } else {
-
       const enviBody1 = JSON.stringify(enviBody);
       // borrar en 3600 segundos es decir una hora (60 * 60 )
       redisClient.set(currency, enviBody1, 'EX', 3600);
@@ -132,7 +126,11 @@ router.get("/monthly", checkParams, getCurrenyOnRedis, function(req, res, next) 
     if (err) {
       return res.status(400).json(body);
     }
+    if (typeof body['Error Message'] !== 'undefined') {
 
+      return res.status(400).json(body);
+
+    } else {
       const result = [];
       result.push(JSON.parse(body));
       const enviBody = {
@@ -140,16 +138,6 @@ router.get("/monthly", checkParams, getCurrenyOnRedis, function(req, res, next) 
         message: 'Monthly info',
         results: result
       }
-      if( enviBody.results[0].hasOwnProperty("Error Message"))
-      {
-        console.log("entro en error");
-        res.send({
-          success: false,
-          message: 'Error de conexion a la pagina',
-        });
-        return res.status(400);
-      } else {
-        
       const enviBody1 = JSON.stringify(enviBody);
       if(req.path==='/monthly'){
 
