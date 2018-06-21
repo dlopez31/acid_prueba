@@ -101,7 +101,7 @@ router.get("/daily", checkParams, getCurrenyOnRedis, function(req, res, next) {
         console.log("entro en error");
         res.send({
           success: false,
-          message: 'Error de conexion a la pagina',
+          error: 'Error de conexion a la pagina',
         });
         return res.status(400);
       } else {
@@ -145,11 +145,11 @@ router.get("/monthly", checkParams, getCurrenyOnRedis, function(req, res, next) 
         console.log("entro en error");
         res.send({
           success: false,
-          message: 'Error de conexion a la pagina',
+          error: 'Error de conexion a la pagina',
         });
         return res.status(400);
       } else {
-        
+
       const enviBody1 = JSON.stringify(enviBody);
       if(req.path==='/monthly'){
 
