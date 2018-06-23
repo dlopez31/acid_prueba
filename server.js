@@ -1,37 +1,32 @@
-// HOLA COMMENT
-const express = require('express');
+// Dependencies
+import express from 'express';
+import bodyParser from 'body-parser';
+import routes from './routes';
+import { PORT as port } from './config';
+import redisObject from './redisClient';
+
 const app = express();
-const bodyParser = require('body-parser');
-const routes= require('./routes');
-const env =require('./config');
-const port = env.PORT;
-const redisObject =require('./redisClient');
 const { redisClient } = redisObject;
 
-app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
 });
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.use("/api",[routes])
+app.use("/api", [routes])
 
-
-redisClient.on("error",function(error){
+redisClient.on("error", error => {
   console.log(error);
 })
 
-app.listen(port,function(error){
-   if(error){
-     console.log("Servidor error");
-   }
+app.listen(port, error => {
+  if (error) {
+    console.log("Servidor error");
+  }
 
-    console.log("server runnin", port);
-})
-
-// return getAsync("name").then(function(res) {
-//     console.log(res); // => 'bar'
-// });
+  console.log("server runnin", port);
+});

@@ -1,7 +1,5 @@
-const redis= require('redis');
-const redisClient=redis.createClient({host:"redis_server"})
-const {promisify} = require('util');
-const getAsync = promisify(redisClient.get).bind(redisClient);
+import  redis from 'redis';
+const redisClient = redis.createClient({host:"redis_server"});
 
 module.exports = {
   redis,

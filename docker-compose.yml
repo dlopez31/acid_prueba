@@ -2,16 +2,6 @@
 version: "3.3"
 
 services:
-  front:
-    build: ./front
-    container_name: front-react
-    volumes:
-      - ./:/app/front
-      - /app/node_modules/
-    ports:
-      - "${REACT_PORT}:${REACT_PORT}"
-    environment:
-      PORT: ${REACT_PORT}
   node_server:
     build: .
     container_name: crypto-server
@@ -20,7 +10,6 @@ services:
     volumes:
       - ./:/app
       - /app/node_modules/
-      - /app/front/
     ports:
       - "${PORT}:${PORT}"
     links:

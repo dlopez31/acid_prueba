@@ -1,32 +1,43 @@
 const express = require('express');
-const router = express.Router();
-const request = require('request');
-const redisObject = require('../redisClient');
+import request from 'request';
+
+import util from '../utils';
+import redisObject from '../redisClient';
+
+let router = express.Router();
+
 const {
-  redis,
   redisClient
 } = redisObject;
-const util = require('../utils');
-const {
-  makeUrl
-} = util;
 
-redisClient.del('BTC')
-redisClient.del('ETH')
-redisClient.del('BTCM')
-redisClient.del('ETHM')
+const { makeUrl } = util;
 
+// Para eliminar los datos de redis
+/*
+  redisClient.del('BTC')
+  redisClient.del('ETH')
+  redisClient.del('BTCM')
+  redisClient.del('ETHM')
+*/
+
+/*
+Nombre: checkParams
+Funcionalidad: Validar que se pase el parametro currency
+               y que no esa null.
+
+*/
 const checkParams = (req, res, next) => {
   const {
     currency
   } = req.query;
-
-  if (typeof currency === 'undefined' || currency === null) {
-    return res.status(400).json({
-      error: 'unsupported currency value'
-    });
+  console.log("currency", currency);
+  if (typeof currency === 'undefined' || currency === null || currency === '') {
+    return res.status(400)
+      .send({
+        success: false,
+        error: 'Error debe especificar a currency',
+      });
   }
-
   next();
 }
 
@@ -37,7 +48,6 @@ const simulateErrorNetwork = (cb) => {
     console.log('retry request', new Error('How Unfortunate the API Request Failed!!!'));
     return simulateErrorNetwork(cb);
   }
-
   cb();
 }
 
@@ -50,16 +60,15 @@ const getCurrenyOnRedis = (req, res, next) => {
 }
 
 const serarchOnRedis = (req, res, next) => {
-          let {
-            currency
-          } = req.query;
+  let {
+    currency
+  } = req.query;
 
-          if(req.path==='/monthly'){
+  if (req.path === '/monthly') {
+    currency = `${currency}M`;
+  }
 
-            currency=`${currency}M`;
-          }
-
-  redisClient.get(currency, function(error, value) {
+  redisClient.get(currency, (error, value) => {
     if (error || value === null) {
       console.log("buscar en api");
       return next();
@@ -69,42 +78,45 @@ const serarchOnRedis = (req, res, next) => {
       const json = JSON.parse(value);
       res.json(json);
     } catch (er) {
-      res.status(400).json({
-        error: err.message || err
-      })
+      return res.status(400)
+        .send({
+          success: false,
+          error: err.message || err
+        });
     }
   })
 }
 
-router.get("/daily", checkParams, getCurrenyOnRedis, function(req, res, next) {
+router.get("/daily", checkParams, getCurrenyOnRedis, (req, res, next) => {
   const {
     currency
   } = req.query;
-  const url = makeUrl("DIGITAL_CURRENCY_INTRADAY", currency)
+  const url = makeUrl("DIGITAL_CURRENCY_INTRADAY", currency);
 
-  getCurrency(url, function(err, resp, body) {
+  getCurrency(url, (err, resp, body) => {
     if (err) {
-
-      return res.status(400).json(body);
+      return res.status(400)
+        .send({
+          success: false,
+          error: err.message || err
+        });
     }
 
-
-      const result = [];
-      result.push(JSON.parse(body));
-      const enviBody = {
-        success: true,
-        message: 'Daily info',
-        results: result
-      }
-      if( enviBody.results[0].hasOwnProperty("Error Message"))
-      {
-        console.log("entro en error");
-        res.send({
+    const result = [];
+    result.push(JSON.parse(body));
+    const enviBody = {
+      success: true,
+      message: 'Daily info',
+      results: result
+    }
+    if (enviBody.results[0].hasOwnProperty("Error Message")) {
+      console.log("entro en error");
+      return res.status(400)
+        .send({
           success: false,
-          error: 'Error de conexion a la pagina',
+          error: enviBody.results[0]["Error Message"]
         });
-        return res.status(400);
-      } else {
+    } else {
 
       const enviBody1 = JSON.stringify(enviBody);
       // borrar en 3600 segundos es decir una hora (60 * 60 )
@@ -113,9 +125,11 @@ router.get("/daily", checkParams, getCurrenyOnRedis, function(req, res, next) {
 
         res.json(JSON.parse(enviBody1));
       } catch (er) {
-        res.status(400).json({
-          error: err.message || err
-        })
+        return res.status(400)
+          .send({
+            success: false,
+            error: err.message || err
+          });
       }
     }
 
@@ -123,37 +137,40 @@ router.get("/daily", checkParams, getCurrenyOnRedis, function(req, res, next) {
 
 })
 
-router.get("/monthly", checkParams, getCurrenyOnRedis, function(req, res, next) {
+router.get("/monthly", checkParams, getCurrenyOnRedis, (req, res, next) => {
   let {
     currency
   } = req.query;
   const url = makeUrl("DIGITAL_CURRENCY_MONTHLY", currency)
-  getCurrency(url, function(err, resp, body) {
+  getCurrency(url, (err, resp, body) => {
     if (err) {
-      return res.status(400).json(body);
+      return res.status(400)
+        .send({
+          success: false,
+          error: err.message || err
+        });
     }
 
-      const result = [];
-      result.push(JSON.parse(body));
-      const enviBody = {
-        success: true,
-        message: 'Monthly info',
-        results: result
-      }
-      if( enviBody.results[0].hasOwnProperty("Error Message"))
-      {
-        console.log("entro en error");
-        res.send({
-          success: false,
-          error: 'Error de conexion a la pagina',
-        });
-        return res.status(400);
-      } else {
+    const result = [];
+    result.push(JSON.parse(body));
+    const enviBody = {
+      success: true,
+      message: 'Monthly info',
+      results: result
+    }
+    if (enviBody.results[0].hasOwnProperty("Error Message")) {
+      console.log("entro en error");
+      return res.status(400).send({
+        success: false,
+        error: enviBody.results[0]["Error Message"]
+      });
+
+    } else {
 
       const enviBody1 = JSON.stringify(enviBody);
-      if(req.path==='/monthly'){
+      if (req.path === '/monthly') {
 
-        currency=`${currency}M`;
+        currency = `${currency}M`;
       }
       // borrar en 86400 segundos es decir una hora (60 * 60 * 24)
       redisClient.set(currency, enviBody1, 'EX', 86400);
@@ -161,12 +178,13 @@ router.get("/monthly", checkParams, getCurrenyOnRedis, function(req, res, next) 
 
         res.json(JSON.parse(enviBody1));
       } catch (er) {
-        res.status(400).json({
-          error: err.message || err
-        })
+        return res.status(400).send({
+          success: false,
+          error: enviBody.results[0]["Error Message"]
+        });
       }
     }
   });
 })
 
-module.exports = router;
+export default router ;
