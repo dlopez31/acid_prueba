@@ -7,4 +7,4 @@ module.exports ={
   API_URL,
   PORT,
   API_KEY
-}
+};
