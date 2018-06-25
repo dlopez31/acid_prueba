@@ -1,4 +1,7 @@
 import util from '../libs/utils';
+import message from '../libs/utils/message';
+
+const { sendError } = message;
 
 const { makeUrl,
     checkParams,
@@ -12,47 +15,28 @@ module.exports = (app, api) => {
         let {
             currency
         } = req.query;
+
         const url = makeUrl("DIGITAL_CURRENCY_MONTHLY", currency)
         getCurrency(url, (err, resp, body) => {
             if (err) {
-                return res.status(400)
-                    .send({
-                        success: false,
-                        error: err.message || err
-                    });
+                sendError(res, err);
             }
 
-            const result = [];
-            result.push(JSON.parse(body));
-            const enviBody = {
-                success: true,
-                message: 'Monthly info',
-                results: result
-            }
-            if (enviBody.results[0].hasOwnProperty("Error Message")) {
+           if (JSON.parse(body).hasOwnProperty("Error Message") || JSON.parse(body).hasOwnProperty("Information") ) {
                 console.log("entro en error");
-                return res.status(400).send({
-                    success: false,
-                    error: enviBody.results[0]["Error Message"]
-                });
-
+                sendError(res, body);
             } else {
 
-                const enviBody1 = JSON.stringify(enviBody);
                 if (req.path === '/monthly') {
 
                     currency = `${currency}M`;
                 }
                 // borrar en 86400 segundos es decir una hora (60 * 60 * 24)
-                redisClient.set(currency, enviBody1, 'EX', 86400);
+                redisClient.set(currency, body, 'EX', 86400);
                 try {
-
-                    res.json(JSON.parse(enviBody1));
+                   res.status(200).send(JSON.parse(body));
                 } catch (er) {
-                    return res.status(400).send({
-                        success: false,
-                        error: enviBody.results[0]["Error Message"]
-                    });
+                    sendError(res, er);
                 }
             }
         });

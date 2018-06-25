@@ -1,8 +1,11 @@
 import request from 'request';
 import env from '../config';
 import redisObject from '../redisClient';
+import message from './message';
 
 const { redisClient } = redisObject;
+const { sendError } = message;
+
 
 const makeUrl = (fn, currency) => {
   return `${env.API_URL}?function=${fn}&symbol=${currency}&market=CLP&apikey=${env.API_KEY}`;
@@ -13,12 +16,15 @@ const checkParams = (req, res, next) => {
     currency
   } = req.query;
 
+  /*
+    uso para limpiar bd redis
+    redisClient.del('BTC');
+    redisClient.del('BTCM');
+    redisClient.del('ETH');
+    redisClient.del('ETHM');
+  */
   if (typeof currency === 'undefined' || currency === null || currency === '') {
-    return res.status(400)
-      .send({
-        success: false,
-        error: 'Error debe especificar a currency',
-      });
+    sendError(res, 'Error debe especificar a currency');
   }
   next();
 };
@@ -60,11 +66,7 @@ const serarchOnRedis = (req, res, next) => {
       const json = JSON.parse(value);
       res.json(json);
     } catch (er) {
-      return res.status(400)
-        .send({
-          success: false,
-          error: err.message || err
-        });
+      sendError(res, err);
     }
   })
 };

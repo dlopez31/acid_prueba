@@ -1,4 +1,7 @@
 import util from '../libs/utils';
+import message from '../libs/utils/message';
+
+const { sendError } = message;
 
 const { makeUrl,
     checkParams,
@@ -7,6 +10,7 @@ const { makeUrl,
     redisClient } = util;
 
 module.exports = (app, api) => {
+
 
     api.get("/daily", checkParams, getCurrenyOnRedis, (req, res, next) => {
 
@@ -18,41 +22,20 @@ module.exports = (app, api) => {
 
         getCurrency(url, (err, resp, body) => {
             if (err) {
-                return res.status(400)
-                    .send({
-                        success: false,
-                        error: err.message || err
-                    });
+                sendError(res, err.message || err);
             }
 
-            const result = [];
-            result.push(JSON.parse(body));
-            const enviBody = {
-                success: true,
-                message: 'Daily info',
-                results: result
-            }
-            if (enviBody.results[0].hasOwnProperty("Error Message")) {
+            if (JSON.parse(body).hasOwnProperty("Error Message") || JSON.parse(body).hasOwnProperty("Information") ) {
                 console.log("entro en error");
-                return res.status(400)
-                    .send({
-                        success: false,
-                        error: enviBody.results[0]["Error Message"]
-                    });
+                sendError(res, body);
             } else {
 
-                const enviBody1 = JSON.stringify(enviBody);
                 // borrar en 3600 segundos es decir una hora (60 * 60 )
-                redisClient.set(currency, enviBody1, 'EX', 3600);
+                redisClient.set(currency, body, 'EX', 3600);
                 try {
-
-                    res.json(JSON.parse(enviBody1));
+                    res.status(200).send(JSON.parse(body));
                 } catch (er) {
-                    return res.status(400)
-                        .send({
-                            success: false,
-                            error: err.message || err
-                        });
+                    sendError(res, err.message || er);
                 }
             }
 
