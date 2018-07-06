@@ -7,12 +7,13 @@ const { makeUrl,
     checkParams,
     getCurrency,
     getCurrenyOnRedis,
-    redisClient } = util;
+    redisClient,
+    getXHoras } = util;
 
 module.exports = (app, api) => {
 
 
-    api.get("/daily", checkParams, getCurrenyOnRedis, (req, res, next) => {
+    api.get("/hour", checkParams, getCurrenyOnRedis, (req, res, next) => {
 
         const {
             currency
@@ -25,15 +26,17 @@ module.exports = (app, api) => {
                 sendError(res, err.message || err);
             }
 
-            if (JSON.parse(body).hasOwnProperty("Error Message") || JSON.parse(body).hasOwnProperty("Information") ) {
+            if (JSON.parse(body).hasOwnProperty("Error Message") || JSON.parse(body).hasOwnProperty("Information")) {
                 console.log("entro en error");
                 sendError(res, body);
             } else {
 
+                let resultXHoras = getXHoras(JSON.parse(body));
+           
                 // borrar en 3600 segundos es decir una hora (60 * 60 )
-                redisClient.set(currency, body, 'EX', 3600);
+                 redisClient.set(currency, JSON.stringify(resultXHoras), 'EX', 3600);
                 try {
-                    res.status(200).send(JSON.parse(body));
+                    res.status(200).send(resultXHoras);
                 } catch (er) {
                     sendError(res, err.message || er);
                 }
@@ -44,3 +47,4 @@ module.exports = (app, api) => {
     });
 
 };
+

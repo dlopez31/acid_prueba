@@ -7,7 +7,8 @@ const { makeUrl,
     checkParams,
     getCurrency,
     getCurrenyOnRedis,
-    redisClient } = util;
+    redisClient,
+    getLast } = util;
 
 module.exports = (app, api) => {
 
@@ -31,10 +32,13 @@ module.exports = (app, api) => {
 
                     currency = `${currency}M`;
                 }
+
+                let resultLast = getLast(JSON.parse(body));
+
                 // borrar en 86400 segundos es decir una hora (60 * 60 * 24)
-                redisClient.set(currency, body, 'EX', 86400);
+               redisClient.set(currency, JSON.stringify(resultLast), 'EX', 86400);
                 try {
-                   res.status(200).send(JSON.parse(body));
+                   res.status(200).send(resultLast);
                 } catch (er) {
                     sendError(res, er);
                 }

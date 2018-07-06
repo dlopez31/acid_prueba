@@ -47,6 +47,35 @@ const getCurrenyOnRedis = (req, res, next) => {
   simulateErrorNetwork(serarchOnRedis.bind(null, req, res, next));
 };
 
+const getXHoras = (body) => {
+  let arrayXHora = Object.entries(body["Time Series (Digital Currency Intraday)"])
+    .filter(elem => elem[0].indexOf("00:00") > -1)
+    .filter((elem, index) => index <= 23)
+    .reduce((acc, item) => {
+      acc[item[0]] = item[1];
+      return acc;
+    }, {});
+
+  return {
+    "Meta Data": body["Meta Data"],
+    "Time Series (Digital Currency Intraday)": arrayXHora
+  };
+};
+
+const getLast = (body) => {
+  let arrayLastMonth = Object.entries(body["Time Series (Digital Currency Monthly)"])
+    .filter((elem, index) => index <= 11)
+    .reduce((acc, item) => {
+      acc[item[0]] = item[1];
+      return acc;
+    }, {});
+
+  return {
+    "Meta Data": body["Meta Data"],
+    "Time Series (Digital Currency Monthly)": arrayLastMonth
+  };
+};
+
 const serarchOnRedis = (req, res, next) => {
   let {
     currency
@@ -66,7 +95,7 @@ const serarchOnRedis = (req, res, next) => {
       const json = JSON.parse(value);
       res.json(json);
     } catch (er) {
-      sendError(res, err);
+      sendError(res, er);
     }
   })
 };
@@ -76,5 +105,9 @@ export default {
   checkParams,
   getCurrency,
   getCurrenyOnRedis,
-  redisClient
+  redisClient,
+  getXHoras,
+  getLast
 };
+
+
